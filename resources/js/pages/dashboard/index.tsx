@@ -54,6 +54,8 @@ export default function Dashboard({
             to,
         });
 
+    const uptimeEnabled = currentProject?.uptime_monitoring_enabled ?? true;
+
     useLiveReload(currentProject?.id);
 
     const exceptionSeries = exceptionTimeSeries?.slice(-20) || [];
@@ -72,7 +74,13 @@ export default function Dashboard({
                     {/* Uptime Status */}
                     <Card className="relative overflow-hidden border-border bg-card shadow-2xl lg:col-span-4">
                         <div
-                            className={`absolute top-0 right-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full opacity-20 blur-3xl ${uptime_status?.current === 'up' ? 'bg-emerald-500' : 'bg-red-500'}`}
+                            className={`absolute top-0 right-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full opacity-20 blur-3xl ${
+                                !uptimeEnabled
+                                    ? 'bg-muted-foreground'
+                                    : uptime_status?.current === 'up'
+                                      ? 'bg-emerald-500'
+                                      : 'bg-red-500'
+                            }`}
                         />
                         <CardContent className="p-8">
                             <div className="mb-6 flex items-center justify-between">
@@ -81,30 +89,47 @@ export default function Dashboard({
                                 </div>
                                 <Badge
                                     className={`h-5 gap-1.5 border-none px-2 text-[9px] font-black uppercase ${
-                                        uptime_status?.current === 'up'
-                                            ? 'bg-emerald-500/10 text-emerald-500'
-                                            : uptime_status?.current === 'down'
-                                              ? 'bg-red-500/10 text-red-500'
-                                              : 'bg-muted text-muted-foreground'
+                                        !uptimeEnabled
+                                            ? 'bg-muted text-muted-foreground'
+                                            : uptime_status?.current === 'up'
+                                              ? 'bg-emerald-500/10 text-emerald-500'
+                                              : uptime_status?.current ===
+                                                  'down'
+                                                ? 'bg-red-500/10 text-red-500'
+                                                : 'bg-muted text-muted-foreground'
                                     }`}
                                 >
                                     <span
-                                        className={`size-1.5 rounded-full ${uptime_status?.current === 'up' ? 'animate-pulse bg-emerald-500' : 'bg-red-500'}`}
+                                        className={`size-1.5 rounded-full ${
+                                            !uptimeEnabled
+                                                ? 'bg-muted-foreground'
+                                                : uptime_status?.current ===
+                                                    'up'
+                                                  ? 'animate-pulse bg-emerald-500'
+                                                  : 'bg-red-500'
+                                        }`}
                                     />
-                                    {uptime_status?.current || 'Monitoring...'}
+                                    {!uptimeEnabled
+                                        ? 'Disabled'
+                                        : uptime_status?.current ||
+                                          'Monitoring...'}
                                 </Badge>
                             </div>
                             <div className="mb-2 text-3xl font-black tracking-tighter text-foreground">
-                                {uptime_status?.current === 'up'
-                                    ? 'All Systems Operational'
-                                    : uptime_status?.current === 'down'
-                                      ? 'Service Disruption'
-                                      : 'Awaiting Data'}
+                                {!uptimeEnabled
+                                    ? 'Monitoring Disabled'
+                                    : uptime_status?.current === 'up'
+                                      ? 'All Systems Operational'
+                                      : uptime_status?.current === 'down'
+                                        ? 'Service Disruption'
+                                        : 'Awaiting Data'}
                             </div>
                             <p className="text-[10px] font-medium tracking-tight text-muted-foreground uppercase">
-                                {uptime_status?.last_check
-                                    ? `Last check: ${new Date(uptime_status.last_check).toLocaleTimeString()}`
-                                    : 'Configuring monitor...'}
+                                {!uptimeEnabled
+                                    ? 'Enable uptime monitoring in project settings'
+                                    : uptime_status?.last_check
+                                      ? `Last check: ${new Date(uptime_status.last_check).toLocaleTimeString()}`
+                                      : 'Configuring monitor...'}
                             </p>
                         </CardContent>
                     </Card>

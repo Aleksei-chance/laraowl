@@ -958,6 +958,18 @@ class RecordService
 
     public function getUptimeStats(Project $project, ?string $period = null, ?string $from = null, ?string $to = null): array
     {
+        if (! $project->hasUptimeMonitoring()) {
+            return [
+                'checks' => new LengthAwarePaginator([], 0, 50),
+                'uptime_stats' => [
+                    'uptime_percentage' => 0,
+                    'avg_response_time' => 0,
+                    'last_check' => null,
+                    'total_checks' => 0,
+                ],
+            ];
+        }
+
         $query = $project->uptimeChecks()
             ->orderBy('checked_at', 'desc');
 
