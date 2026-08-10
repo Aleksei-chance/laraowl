@@ -16,13 +16,17 @@ class ProjectController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'url' => ['nullable', 'url', 'max:255'],
-            'uptime_monitoring_enabled' => ['nullable', 'boolean'],
+            'uptime_monitoring_enabled' => ['sometimes', 'boolean'],
             'uptime_check_interval' => ['nullable', 'integer', 'min:30'],
             'retention_days' => ['nullable', 'integer', 'min:0', 'max:365'],
             'logo' => ['nullable', 'image', 'max:2048'],
         ]);
 
-        $monitoringEnabled = $request->boolean('uptime_monitoring_enabled');
+        // Keep the stored value when the field is omitted so a partial update
+        // can't silently switch monitoring off.
+        $monitoringEnabled = $request->missing('uptime_monitoring_enabled')
+            ? $project->uptime_monitoring_enabled
+            : $request->boolean('uptime_monitoring_enabled');
 
         $attributes = [
             'name' => $request->name,

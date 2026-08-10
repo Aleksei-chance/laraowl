@@ -59,6 +59,30 @@ test('uptime monitoring can be re-enabled from the project settings', function (
     expect($project->fresh()->uptime_monitoring_enabled)->toBeTrue();
 });
 
+test('omitting the uptime monitoring field preserves the stored value', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+
+    foreach ([true, false] as $enabled) {
+        $project = Project::factory()->create([
+            'team_id' => $team->id,
+            'url' => 'https://example.com',
+            'uptime_monitoring_enabled' => $enabled,
+        ]);
+
+        $this->actingAs($user)
+            ->patch(route('projects.update', ['current_team' => $team->slug, 'project' => $project->slug]), [
+                'name' => 'Renamed Project',
+                'url' => $project->url,
+                'uptime_check_interval' => 60,
+                'retention_days' => 7,
+            ])
+            ->assertRedirect();
+
+        expect($project->fresh()->uptime_monitoring_enabled)->toBe($enabled);
+    }
+});
+
 test('the uptime monitoring scope only returns monitorable projects', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;
